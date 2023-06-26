@@ -9,8 +9,6 @@ on:
 jobs:
   build-and-test:
     uses: ./.github/workflows/build-and-test.yml
-    with:
-      upload-pages-artifact: false
   deploy-to-pages:
     runs-on: ubuntu-latest
     needs: build-and-test
