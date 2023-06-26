@@ -67,7 +67,7 @@ app.use(express.json());
 app.use("/public", express.static("./public/"));
 
 app.get("/", function (req, res) {
-  res.status(200).render("mainPage", { mainDirData: mainDir });
+  res.status(200).render("index.html");
 });
 
 app.get("*", function (req, res) {
