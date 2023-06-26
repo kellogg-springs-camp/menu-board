@@ -15,22 +15,22 @@ require.extensions[".sql"] = async function (module, filename) {
   module.exports = rawSQL.split(";\r\n");
 };
 // Database
-var db = require("./db-connector");
+// var db = require("./db-connector");
 // var db = require("./db-connector-humberj");
-var ddl = require("./DDL.sql");
-var dml = require("./DML.sql");
-var employeeData = require("./json/employeeData.json");
-var roleData = require("./json/roleData.json");
-var salaryData = require("./json/salaryData.json");
-var projectData = require("./json/projectData.json");
-var employeesProjectsData = require("./json/employeesProjectsData.json");
-const data = {
-  employee: employeeData,
-  project: projectData,
-  role: roleData,
-  salary: salaryData,
-};
-var mainDir = require("./json/mainDir.json");
+// var ddl = require("./DDL.sql");
+// var dml = require("./DML.sql");
+// var employeeData = require("./json/employeeData.json");
+// var roleData = require("./json/roleData.json");
+// var salaryData = require("./json/salaryData.json");
+// var projectData = require("./json/projectData.json");
+// var employeesProjectsData = require("./json/employeesProjectsData.json");
+// const data = {
+//   employee: employeeData,
+//   project: projectData,
+//   role: roleData,
+//   salary: salaryData,
+// };
+// var mainDir = require("./json/mainDir.json");
 //Handlebars
 const hbs = exphbs.create({
   defaultLayout: "main",
