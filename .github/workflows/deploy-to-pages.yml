@@ -7,11 +7,13 @@ on:
       - test-cd-to-engr-web-space
 
 jobs:
-  build-and-test:
-    uses: ./.github/workflows/build-and-test.yml
+  # build-and-test:
+  # uses: ./.github/workflows/build-and-test.yml
+  # with:
+  # upload-pages-artifact: true
   deploy-to-pages:
     runs-on: ubuntu-latest
-    needs: build-and-test
+    # needs: build-and-test
     permissions:
       pages: write
       id-token: write
