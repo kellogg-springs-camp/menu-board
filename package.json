@@ -4,7 +4,9 @@
   "description": "This is the prototype for Kellogg Springs Camp's menu board for meals",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "webpack",
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
