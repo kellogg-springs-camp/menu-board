@@ -4,16 +4,16 @@
 // Express
 var fs = require("fs");
 var express = require("express"); // We are using the express library for the web server
-var exphbs = require("express-handlebars");
+// var exphbs = require("express-handlebars");
 var app = express(); // We need to instantiate an express object to interact with the server in our code
 PORT = process.env.PORT || 4221; // Set a port number at the top so it's easy to change in the future
-require.extensions[".sql"] = async function (module, filename) {
-  var rawSQL = fs.readFileSync(filename, "utf8");
-  // module.exports = rawSQL;
-  // module.exports = rawSQL.replace(/\r|\n/g, '');
-  // var dataArr = rawSQL.split('\n');
-  module.exports = rawSQL.split(";\r\n");
-};
+// require.extensions[".sql"] = async function (module, filename) {
+//   var rawSQL = fs.readFileSync(filename, "utf8");
+//   // module.exports = rawSQL;
+//   // module.exports = rawSQL.replace(/\r|\n/g, '');
+//   // var dataArr = rawSQL.split('\n');
+//   module.exports = rawSQL.split(";\r\n");
+// };
 // Database
 // var db = require("./db-connector");
 // var db = require("./db-connector-humberj");
@@ -67,7 +67,7 @@ app.use(express.json());
 app.use("/public", express.static("./public/"));
 
 app.get("/", function (req, res) {
-  res.status(200).render("index.html");
+  res.status(200).render("public/index.html");
 });
 
 app.get("*", function (req, res) {
