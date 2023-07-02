@@ -11,6 +11,8 @@ require.extensions[".sql"] = async function (module, filename) {
   var rawSQL = fs.readFileSync(filename, "utf8");
   module.exports = rawSQL.split(";\r\n");
 };
+//Database
+var dailyMenus = require("./json/dailyMenus.json");
 //Handlebars
 const hbs = exphbs.create({
   defaultLayout: "main",
@@ -28,8 +30,28 @@ app.set("view engine", "handlebars");
 app.use(express.json());
 app.use("/public", express.static("./public/"));
 
+app.post("/api/newday", function (req, res) {
+  dailyMenus.push(req.body);
+
+  fs.writeFile(
+    "./json/dailyMenus.json",
+    JSON.stringify(dailyMenus, null, 2),
+    function (err) {
+      if (err) {
+        res.status(500).send("Failed to add data.");
+      } else {
+        res.status(200).send("Data successfully uploaded.");
+      }
+    }
+  );
+});
+
 app.get("/", function (req, res) {
   res.status(200).render("menu");
+});
+
+app.get("/new", function (req, res) {
+  res.status(200).render("newmenu");
 });
 
 app.get("*", function (req, res) {

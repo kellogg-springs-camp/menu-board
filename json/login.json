@@ -1,0 +1,32 @@
+{
+  "josiah": {
+    "user": "josiah",
+    "password": "nateisdope",
+    "cred": 0
+  },
+  "melanie": {
+    "user": "melanie",
+    "password": "melanie",
+    "cred": 3
+  },
+  "missy": {
+    "user": "missy",
+    "password": "missy",
+    "cred": 1
+  },
+  "ed": {
+    "user": "ed",
+    "password": "ed",
+    "cred": 1
+  },
+  "zeke": {
+    "user": "zeke",
+    "password": "zeke",
+    "cred": 4
+  },
+  "jess": {
+    "user": "jess",
+    "password": "jess",
+    "cred": 5
+  }
+}
