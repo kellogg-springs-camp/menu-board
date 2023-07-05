@@ -12,13 +12,33 @@ require.extensions[".sql"] = async function (module, filename) {
   module.exports = rawSQL.split(";\r\n");
 };
 //Database
-var dailyMenus = require("./json/dailyMenus.json");
+var db = require("./db-connector");
+var ddl = require("./ddl.sql");
+// var dailyMenus = require("./json/dailyMenus.json");
 //Handlebars
 const hbs = exphbs.create({
   defaultLayout: "main",
   helpers: {
+    hasForeignKey: function (columnName, fkInfo) {
+      const matchingForeignKey = fkInfo.find(
+        (fk) => fk.COLUMN_NAME === columnName
+      );
+      return matchingForeignKey ? "FK" : "";
+    },
+    ifEquals: function (columnName, fkInfo) {
+      const matchingForeignKey = fkInfo.find(
+        (fk) => fk.COLUMN_NAME === columnName
+      );
+      return matchingForeignKey ? true : false;
+    },
     isEquals: function (x, y) {
       return x === y ? true : false;
+    },
+    getReferenceTable: function (columnName, fkInfo) {
+      const matchingForeignKey = fkInfo.find(
+        (fk) => fk.COLUMN_NAME === columnName
+      );
+      return matchingForeignKey.REFERENCED_TABLE_NAME;
     },
   },
 });
@@ -29,6 +49,59 @@ app.set("view engine", "handlebars");
 
 app.use(express.json());
 app.use("/public", express.static("./public/"));
+
+async function runArrQueries(sqlArr) {
+  for (var query of sqlArr) {
+    // console.log(query);
+    if (query) {
+      query += ";";
+      try {
+        const results = await new Promise((resolve, reject) => {
+          db.pool.query(query, function (err, results, fields) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(results);
+            }
+          });
+        });
+        // console.log(results);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }
+}
+
+async function runSingleQueries(query) {
+  // console.log(query);
+  if (query) {
+    try {
+      const results = await new Promise((resolve, reject) => {
+        db.pool.query(query, function (err, results, fields) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+      // console.log(results);
+      return results; // Resolve the promise with the query results
+    } catch (error) {
+      console.log(error);
+      throw error; // Re-throw the error to be caught in the calling code
+    }
+  } else {
+    throw new Error("Query is missing."); // Throw an error if query is not provided
+  }
+}
+
+runArrQueries(ddl);
+
+app.get("/", function (req, res) {
+  res.status(200).render("menu");
+});
 
 app.post("/api/newday", function (req, res) {
   dailyMenus.push(req.body);
@@ -44,10 +117,6 @@ app.post("/api/newday", function (req, res) {
       }
     }
   );
-});
-
-app.get("/", function (req, res) {
-  res.status(200).render("menu");
 });
 
 app.get("/new", function (req, res) {
