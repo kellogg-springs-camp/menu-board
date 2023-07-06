@@ -1,1 +1,8 @@
-{}
+{
+  "date": "Date",
+  "meal-types_id": "Meal",
+  "service-time": "Meal Time",
+  "name": "Name",
+  "description": "Description",
+  "servings": "Portion Size"
+}

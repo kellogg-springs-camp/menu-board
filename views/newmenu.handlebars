@@ -1,28 +1,28 @@
-<form>
-  <header>
-    <input type="text" value="Buffet-style Menu"></input>
-  </header>
-  <section>
-    <h2>Main Dishes</h2>
-    <ul>
-      <li>Fried chicken</li>
-      <li>Pulled pork</li>
-      <li>Grilled salmon</li>
-      <li>Vegetable stir-fry</li>
-    </ul>
-    <h2>Side Dishes</h2>
-    <ul>
-      <li>Mac and cheese</li>
-      <li>Green beans</li>
-      <li>Mashed potatoes</li>
-      <li>Corn on the cob</li>
-    </ul>
-    <h2>Desserts</h2>
-    <ul>
-      <li>Apple pie</li>
-      <li>Brownies</li>
-      <li>Ice cream</li>
-      <li>Fruit salad</li>
-    </ul>
-  </section>
+<form class="menus" id="dataform">
+  <h2>Edit Menu</h2>
+  <p style="color: red;">*=required</p>
+  {{#each atributeInfo}}
+    {{#if (isEquals Key "PRI")}}{{else if (isEquals Type "time")}}{{else}}
+      <label for={{Field}}
+        class="{{Type}} {{Null}} {{Key}} FK{{ifEquals Field ../fkInfo}}">{{lookup ../columnNames [Field]}}:</label>
+      {{#if (ifEquals Field ../fkInfo)}}
+        {{#with (lookup ../fkTable [Field])}}
+          {{#with name}}
+            <select name={{Field}} class="{{Type}} {{Null}} {{Key}} {{../../Field}} FKinput datainput">
+              <option value=""></option>
+              {{#each ../select}}
+                <option value={{#with ../../id}}{{lookup .. [Field]}}{{/with}}>
+                  {{#with ../../id}}{{lookup .. [Field]}}{{/with}} - {{lookup . ../Field}}</option>
+              {{/each}}
+            </select>
+          {{/with}}
+        {{/with}}
+      {{else if (isEquals Type "date")}}
+        <input type="date" name={{Field}} class="{{Type}} {{Null}} {{Key}} datainput" />
+      {{else}}
+        <input type="text" name={{Field}} class="{{Type}} {{Null}} {{Key}} datainput" />
+      {{/if}}
+    {{/if}}
+  {{/each}}
+  <input id="submit" type="submit" value="Submit" />
 </form>

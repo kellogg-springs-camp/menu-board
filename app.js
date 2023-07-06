@@ -14,7 +14,7 @@ require.extensions[".sql"] = async function (module, filename) {
 //Database
 var db = require("./db-connector");
 var ddl = require("./ddl.sql");
-// var dailyMenus = require("./json/dailyMenus.json");
+var columnRename = require("./json/column-rename.json");
 //Handlebars
 const hbs = exphbs.create({
   defaultLayout: "main",
@@ -49,6 +49,52 @@ app.set("view engine", "handlebars");
 
 app.use(express.json());
 app.use("/public", express.static("./public/"));
+
+async function getTableFromFK(fkInfo) {
+  var retVal = {};
+  for (var i = 0; i < fkInfo.length; i++) {
+    var columnsQ =
+      "SHOW COLUMNS FROM `" + fkInfo[i].REFERENCED_TABLE_NAME + "`;";
+    try {
+      const results = await new Promise((resolve, reject) => {
+        db.pool.query(columnsQ, function (err, results, fields) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+      // console.log(results);
+      retVal[fkInfo[i].COLUMN_NAME] = {
+        name: results.find((column) => column.Field.includes("name")),
+        id: results.find((column) => column.Field.includes("id")),
+      }; // Resolve the promise with the query results
+    } catch (error) {
+      console.log(error);
+      throw error; // Re-throw the error to be caught in the calling code
+    }
+    var columnsQ = "SELECT * FROM `" + fkInfo[i].REFERENCED_TABLE_NAME + "`;";
+    try {
+      const results = await new Promise((resolve, reject) => {
+        db.pool.query(columnsQ, function (err, results, fields) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+      // console.log(results);
+      retVal[fkInfo[i].COLUMN_NAME]["select"] = results;
+      // console.log(retVal);
+    } catch (error) {
+      console.log(error);
+      throw error; // Re-throw the error to be caught in the calling code
+    }
+  }
+  return retVal;
+}
 
 async function runArrQueries(sqlArr) {
   for (var query of sqlArr) {
@@ -103,24 +149,100 @@ app.get("/", function (req, res) {
   res.status(200).render("menu");
 });
 
-app.post("/api/newday", function (req, res) {
-  dailyMenus.push(req.body);
-
-  fs.writeFile(
-    "./json/dailyMenus.json",
-    JSON.stringify(dailyMenus, null, 2),
-    function (err) {
-      if (err) {
-        res.status(500).send("Failed to add data.");
-      } else {
-        res.status(200).send("Data successfully uploaded.");
+app.get("/api/menus", function (req, res) {
+  var columnsQ = "SHOW COLUMNS FROM menus;";
+  var fkQ =
+    "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menus' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
+  runSingleQueries(columnsQ)
+    .then(function (returndata) {
+      // console.log("results " + returndata);
+      try {
+        runSingleQueries(fkQ)
+          .then(function (fks) {
+            // console.log("results " + fks);
+            try {
+              getTableFromFK(fks)
+                .then(function (table) {
+                  // console.log("results " + table);
+                  try {
+                    res.status(200).json({
+                      columnNames: columnRename,
+                      atributeInfo: returndata,
+                      fkInfo: fks,
+                      fkTable: table,
+                    });
+                  } catch (err) {
+                    res.status(500).send("Server failed to respond: " + err);
+                  }
+                })
+                .catch((err) => {
+                  console.log(err);
+                  res.status(500).send("Server failed to respond: " + err);
+                });
+            } catch (err) {
+              res.status(500).send("Server failed to respond: " + err);
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+            res.status(500).send("Server failed to respond: " + err);
+          });
+      } catch (err) {
+        res.status(500).send("Server failed to respond: " + err);
       }
-    }
-  );
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("Server failed to respond: " + err);
+    });
 });
 
 app.get("/new", function (req, res) {
-  res.status(200).render("newmenu");
+  var columnsQ = "SHOW COLUMNS FROM menus;";
+  var fkQ =
+    "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menus' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
+  runSingleQueries(columnsQ)
+    .then(function (returndata) {
+      // console.log("results " + returndata);
+      try {
+        runSingleQueries(fkQ)
+          .then(function (fks) {
+            // console.log("results " + fks);
+            try {
+              getTableFromFK(fks)
+                .then(function (table) {
+                  // console.log("results " + table);
+                  try {
+                    res.status(200).render("newmenu", {
+                      columnNames: columnRename,
+                      atributeInfo: returndata,
+                      fkInfo: fks,
+                      fkTable: table,
+                    });
+                  } catch (err) {
+                    res.status(500).send("Server failed to respond: " + err);
+                  }
+                })
+                .catch((err) => {
+                  console.log(err);
+                  res.status(500).send("Server failed to respond: " + err);
+                });
+            } catch (err) {
+              res.status(500).send("Server failed to respond: " + err);
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+            res.status(500).send("Server failed to respond: " + err);
+          });
+      } catch (err) {
+        res.status(500).send("Server failed to respond: " + err);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("Server failed to respond: " + err);
+    });
 });
 
 app.get("*", function (req, res) {
