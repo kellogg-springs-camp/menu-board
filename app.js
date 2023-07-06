@@ -149,6 +149,43 @@ app.get("/", function (req, res) {
   res.status(200).render("menu");
 });
 
+app.post("/api/createmenu", function (req, res) {
+  var existsQ =
+    "SELECT EXISTS(SELECT 1 FROM menus WHERE date = '" +
+    req.body.date +
+    "' AND `meal-type_id` = '" +
+    req.body.name +
+    "') AS row_exists;";
+  runSingleQueries(existsQ)
+    .then(function (existsBool) {
+      console.log(existsBool[0].row_exists);
+      if (existsBool[0].row_exists == 0) {
+        var newMenuQ =
+          "INSERT INTO menus VALUES(DEFAULT,'" +
+          req.body.date +
+          "','" +
+          req.body.name +
+          "', DEFAULT);";
+        try {
+          runSingleQueries(newMenuQ)
+            .then((data) => {
+              res.status(200).send("New Menu successfully created.");
+            })
+            .catch((err) => {
+              res.status(500).send("Server failed to store new menu: " + err);
+            });
+        } catch (err) {
+          res.status(500).send("Server failed to store new menu: " + err);
+        }
+      } else {
+        res.status(200).send("Menu already exists.");
+      }
+    })
+    .catch((err) => {
+      res.status(500).send("Server failed to respond: " + err);
+    });
+});
+
 app.get("/api/menus", function (req, res) {
   var columnsQ = "SHOW COLUMNS FROM menus;";
   var fkQ =

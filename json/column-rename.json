@@ -1,6 +1,6 @@
 {
   "date": "Date",
-  "meal-types_id": "Meal",
+  "meal-type_id": "Meal",
   "service-time": "Meal Time",
   "name": "Name",
   "description": "Description",

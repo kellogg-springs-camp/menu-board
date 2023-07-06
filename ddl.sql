@@ -32,13 +32,13 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `mydb`.`menus` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `date` DATE NOT NULL,
-  `meal-types_id` INT UNSIGNED NOT NULL,
+  `meal-type_id` INT UNSIGNED NOT NULL,
   `service-time` TIME NULL,
   PRIMARY KEY (`id`),
-  INDEX `fk_menus_meal-types1_idx` (`meal-types_id` ASC) VISIBLE,
+  INDEX `fk_menus_meal-types1_idx` (`meal-type_id` ASC) VISIBLE,
   UNIQUE INDEX `id-menu_UNIQUE` (`id` ASC) VISIBLE,
   CONSTRAINT `fk_menus_meal-types1`
-    FOREIGN KEY (`meal-types_id`)
+    FOREIGN KEY (`meal-type_id`)
     REFERENCES `mydb`.`meal-types` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
