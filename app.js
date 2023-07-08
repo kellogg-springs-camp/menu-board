@@ -186,6 +186,8 @@ app.post("/api/createmenu", function (req, res) {
     });
 });
 
+app.get("/api/forms/editmenu", (req, res) => {});
+
 app.get("/api/menus", function (req, res) {
   var columnsQ = "SHOW COLUMNS FROM menus;";
   var fkQ =

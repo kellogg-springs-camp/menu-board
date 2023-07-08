@@ -36,7 +36,7 @@ function validate(element) {
 }
 
 document
-  .getElementById("dataform")
+  .getElementById("menusform")
   .addEventListener("submit", function (event) {
     event.preventDefault(); // Prevents the default form submission
     const statuses = event.target.querySelectorAll(".error");
