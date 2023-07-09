@@ -4,5 +4,7 @@
   "service-time": "Meal Time",
   "name": "Name",
   "description": "Description",
-  "servings": "Portion Size"
+  "servings": "Portion Size",
+  "food-item_id": "Food Item",
+  "serve-line_id": "Serve Line Position"
 }

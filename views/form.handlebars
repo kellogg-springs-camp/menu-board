@@ -2,7 +2,7 @@
   <h2>{{formName}}</h2>
   <p style="color: red;">*=required</p>
   {{#each atributeInfo}}
-    {{#if (isEquals Key "PRI")}}{{else if (isEquals Type "time")}}{{else}}
+    {{#if (isEquals Extra 'auto_increment')}}{{else if (isEquals Type "time")}}{{else if (isEquals Field "menu_id")}}{{else}}
       <label for={{Field}}
         class="{{Type}} {{Null}} {{Key}} FK{{ifEquals Field ../fkInfo}}">{{lookup ../columnNames [Field]}}:</label>
       {{#if (ifEquals Field ../fkInfo)}}
@@ -26,3 +26,4 @@
   {{/each}}
   <input id="{{formFor}}submit" type="submit" value="Submit" />
 </form>
+<div id="{{formFor}}Additional"></div>
