@@ -1,4 +1,5 @@
 {
+  "id": "ID Number (leave blank for DEFAULT)",
   "date": "Date",
   "meal-type_id": "Meal",
   "service-time": "Meal Time",

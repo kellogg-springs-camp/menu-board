@@ -77,14 +77,17 @@ document
             throw new Error(error);
           });
         }
-        console.log(response.text);
-        // Add JavaScript code to fetch and render the additional template using AJAX or other methods
-
-        // Fetch data and render additional template
         fetch("/api/forms/menu_items")
           .then((response) => response.text())
           .then((html) => {
             document.getElementById("menusAdditional").innerHTML = html;
+            fetch("/api/forms/food-items")
+              .then((response) => response.text())
+              .then((html) => {
+                document.getElementById("menu_itemsAdditional").innerHTML =
+                  html;
+              })
+              .catch((error) => console.error(error));
           })
           .catch((error) => console.error(error));
       })

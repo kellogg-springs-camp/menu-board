@@ -626,3 +626,18 @@ INSERT INTO `meal-types` VALUES
 (DEFAULT, "Lunch"),
 (DEFAULT, "Dinner"),
 (DEFAULT, "Brunch");
+
+INSERT INTO `serve-line` VALUES
+(DEFAULT, "Hot 1"),
+(DEFAULT, "Hot 2"),
+(DEFAULT, "Hot 3"),
+(DEFAULT, "Cold 1"),
+(DEFAULT, "Cold 2"),
+(DEFAULT, "Cold 3"),
+(DEFAULT, "Cold 4"),
+(DEFAULT, "Dry Side"),
+(DEFAULT, "Beverage"),
+(DEFAULT, "Gluten Free"),
+(DEFAULT, "Dairy Free"),
+(DEFAULT, "Other Special Diet"),
+(DEFAULT, "Other");

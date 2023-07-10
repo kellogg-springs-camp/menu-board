@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <title>Menu List</title>
+    <style>
+      /* Style the buttons */ .edit-btn, .delete-btn { background-color:
+      #4CAF50; color: white; border: none; padding: 5px 10px; text-align:
+      center; text-decoration: none; display: inline-block; font-size: 14px;
+      margin-right: 5px; cursor: pointer; } /* Style the dropdown */
+      .edit-dropdown { display: none; } .edit-dropdown.show { display:
+      inline-block; }
+    </style>
+  </head>
+  <body>
+    <ul id="menu-list">
+      <li>
+        <span class="menu-item">Item 1</span>
+        <span class="menu-price">$9.99</span>
+        <button class="edit-btn">Edit</button>
+        <button class="delete-btn">Delete</button>
+        <select class="edit-dropdown">
+          <option value="Option 1">Option 1</option>
+          <option value="Option 2">Option 2</option>
+          <option value="Option 3">Option 3</option>
+        </select>
+      </li>
+      <li>
+        <span class="menu-item">Item 2</span>
+        <span class="menu-price">$12.99</span>
+        <button class="edit-btn">Edit</button>
+        <button class="delete-btn">Delete</button>
+        <select class="edit-dropdown" disabled>
+          <option value="Option 1">Option 1</option>
+          <option value="Option 2">Option 2</option>
+          <option value="Option 3">Option 3</option>
+        </select>
+      </li>
+      <li>
+        <span class="menu-item">Item 3</span>
+        <span class="menu-price">$7.99</span>
+        <button class="edit-btn">Edit</button>
+        <button class="delete-btn">Delete</button>
+        <select class="edit-dropdown" disabled>
+          <option value="Option 1">Option 1</option>
+          <option value="Option 2">Option 2</option>
+          <option value="Option 3">Option 3</option>
+        </select>
+      </li>
+      <!-- Add more menu items as needed -->
+    </ul>
+
+    <script>
+      // Function to handle edit button click function handleEditClick() { var
+      listItem = this.parentNode; var menuItem =
+      listItem.querySelector(".menu-item"); var menuPrice =
+      listItem.querySelector(".menu-price"); var editDropdown =
+      listItem.querySelector(".edit-dropdown"); var isEditing =
+      editDropdown.disabled; if (isEditing) { editDropdown.disabled = false;
+      editDropdown.classList.add("show"); this.textContent = "Save"; } else {
+      editDropdown.disabled = true; editDropdown.classList.remove("show");
+      this.textContent = "Edit"; // Perform save operation or update the
+      necessary data var selectedItem = editDropdown.value;
+      console.log("Selected option: ", selectedItem); // You can add further
+      logic to update the menu item and price as needed } } // Function to
+      handle delete button click function handleDeleteClick() { var listItem =
+      this.parentNode; listItem.remove(); } // Attach event listeners to edit
+      buttons var editButtons = document.getElementsByClassName("edit-btn"); for
+      (var i = 0; i < editButtons.length; i++) {
+      editButtons[i].addEventListener("click", handleEditClick); } // Attach
+      event listeners to delete buttons var deleteButtons =
+      document.getElementsByClassName("delete-btn"); for (var i = 0; i <
+      deleteButtons.length; i++) { deleteButtons[i].addEventListener("click",
+      handleDeleteClick); }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+<h2>{{formName}}</h2>
+<ul class={{formFor}} id="{{formFor}}list">
+  {{#each atributeInfo}}
+    {{#if (isEquals Extra 'auto_increment')}}{{else if (isEquals Type "time")}}{{else if (isEquals Field "menu_id")}}{{else}}
+      <label for={{Field}}
+        class="{{Type}} {{Null}} {{Key}} FK{{ifEquals Field ../fkInfo}}">{{lookup ../columnNames [Field]}}:</label>
+      {{#if (ifEquals Field ../fkInfo)}}
+        {{#with (lookup ../fkTable [Field])}}
+          {{#with name}}
+            <select name={{Field}} class="{{Type}} {{Null}} {{Key}} {{../../Field}} FKinput datainput">
+              <option value=""></option>
+              {{#each ../select}}
+                <option value={{#with ../../id}}{{lookup .. [Field]}}{{/with}}>
+                  {{#with ../../id}}{{lookup .. [Field]}}{{/with}} - {{lookup . ../Field}}</option>
+              {{/each}}
+            </select>
+          {{/with}}
+        {{/with}}
+      {{else if (isEquals Type "date")}}
+        <input type="date" name={{Field}} class="{{Type}} {{Null}} {{Key}} datainput" />
+      {{else}}
+        <input type="text" name={{Field}} class="{{Type}} {{Null}} {{Key}} datainput" />
+      {{/if}}
+    {{/if}}
+  {{/each}}
+  <input id="{{formFor}}submit" type="submit" value="Submit" />
+</ul>
+<div id="{{formFor}}Additional"></div>
