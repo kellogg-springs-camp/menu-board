@@ -2,8 +2,8 @@
 <ul class={{formFor}} id="{{formFor}}list">
   {{#each atributeInfo}}
     {{#if (isEquals Extra 'auto_increment')}}{{else if (isEquals Type "time")}}{{else if (isEquals Field "menu_id")}}{{else}}
-      <label for={{Field}}
-        class="{{Type}} {{Null}} {{Key}} FK{{ifEquals Field ../fkInfo}}">{{lookup ../columnNames [Field]}}:</label>
+      {{!-- <label for={{Field}}
+        class="{{Type}} {{Null}} {{Key}} FK{{ifEquals Field ../fkInfo}}">{{lookup ../columnNames [Field]}}:</label> --}}
       {{#if (ifEquals Field ../fkInfo)}}
         {{#with (lookup ../fkTable [Field])}}
           {{#with name}}

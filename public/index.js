@@ -86,6 +86,17 @@ document
               .then((html) => {
                 document.getElementById("menu_itemsAdditional").innerHTML =
                   html;
+                fetch("/api/json/menu_items")
+                  .then((response) => response.text())
+                  .then((data) => {
+                    var listhtml = document.createElement("ul")
+                    for(var i = 0; i < data.tableData.length; i++) {
+                      var listItem = document.createElement("li")
+                      var linePos = document.createElement("select")
+                      linePos.setAttribute("name", data.tableData.length)
+                    }
+                  })
+                  .catch((error) => console.error(error));
               })
               .catch((error) => console.error(error));
           })

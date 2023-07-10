@@ -343,6 +343,71 @@ app.get("/api/forms/food-items", (req, res) => {
     });
 });
 
+app.get("/api/json/menu_items", (req, res) => {
+  var columnsQ = "SHOW COLUMNS FROM `menu_items`;";
+  var selectQ = "SELECT * FROM `menu_items`;";
+  var fkQ =
+    "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menu_items' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
+  runSingleQueries(selectQ)
+    .then(function (tabledata) {
+      // console.log("results " + returndata);
+      try {
+        runSingleQueries(columnsQ)
+          .then(function (returndata) {
+            // console.log("results " + returndata);
+            try {
+              runSingleQueries(fkQ)
+                .then(function (fks) {
+                  // console.log("results " + fks);
+                  try {
+                    getTableFromFK(fks)
+                      .then(function (table) {
+                        // console.log("results " + table);
+                        try {
+                          res.status(200).json({
+                            tableData: tabledata,
+                            atributeInfo: returndata,
+                            fkInfo: fks,
+                            fkTable: table,
+                          });
+                        } catch (err) {
+                          res
+                            .status(500)
+                            .send("Server failed to respond: " + err);
+                        }
+                      })
+                      .catch((err) => {
+                        console.log(err);
+                        res
+                          .status(500)
+                          .send("Server failed to respond: " + err);
+                      });
+                  } catch (err) {
+                    res.status(500).send("Server failed to respond: " + err);
+                  }
+                })
+                .catch((err) => {
+                  console.log(err);
+                  res.status(500).send("Server failed to respond: " + err);
+                });
+            } catch (err) {
+              res.status(500).send("Server failed to respond: " + err);
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+            res.status(500).send("Server failed to respond: " + err);
+          });
+      } catch (err) {
+        res.status(500).send("Server failed to respond: " + err);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("Server failed to respond: " + err);
+    });
+});
+
 app.get("/api/json/menus", function (req, res) {
   var columnsQ = "SHOW COLUMNS FROM menus;";
   var fkQ =
