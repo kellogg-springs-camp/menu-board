@@ -161,7 +161,7 @@ app.post("/api/createmenu", function (req, res) {
     "SELECT EXISTS(SELECT 1 FROM menus WHERE date = '" +
     req.body.date +
     "' AND `meal-type_id` = '" +
-    req.body.name +
+    req.body["meal-type_id"] +
     "') AS row_exists;";
   runSingleQueries(existsQ)
     .then(function (existsBool) {
@@ -171,7 +171,7 @@ app.post("/api/createmenu", function (req, res) {
           "INSERT INTO menus VALUES(DEFAULT,'" +
           req.body.date +
           "','" +
-          req.body.name +
+          req.body["meal-type_id"] +
           "', DEFAULT);";
         try {
           runSingleQueries(newMenuQ)
@@ -193,6 +193,32 @@ app.post("/api/createmenu", function (req, res) {
     });
 });
 
+app.post("/api/createmenu_item", function (req, res) {
+  var newMenuQ =
+    "INSERT INTO `menu_items` VALUES((SELECT `id` FROM menus WHERE date = '" +
+    req.body.date +
+    "' AND `meal-type_id` = '" +
+    req.body["meal-type_id"] +
+    "'),'" +
+    req.body["food-item_id"] +
+    "','" +
+    req.body["serve-line_id"] +
+    "'," +
+    req.body.servings +
+    ");";
+  try {
+    runSingleQueries(newMenuQ)
+      .then((data) => {
+        res.status(200).send("New Menu successfully created.");
+      })
+      .catch((err) => {
+        res.status(500).send("Server failed to store new menu: " + err);
+      });
+  } catch (err) {
+    res.status(500).send("Server failed to store new menu: " + err);
+  }
+});
+
 app.get("/api/forms/menu_items", (req, res) => {
   var columnsQ = "SHOW COLUMNS FROM menu_items;";
   var fkQ =
@@ -210,6 +236,7 @@ app.get("/api/forms/menu_items", (req, res) => {
                   // console.log("results " + table);
                   try {
                     res.status(200).render("form", {
+                      layout: false,
                       columnNames: columnRename,
                       atributeInfo: returndata,
                       fkInfo: fks,
@@ -310,6 +337,7 @@ app.get("/api/forms/food-items", (req, res) => {
                   // console.log("results " + table);
                   try {
                     res.status(200).render("form", {
+                      layout: false,
                       columnNames: columnRename,
                       atributeInfo: returndata,
                       fkInfo: fks,

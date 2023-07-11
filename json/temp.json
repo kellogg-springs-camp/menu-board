@@ -1,0 +1,107 @@
+{
+  "tableData": [],
+  "atributeInfo": [
+    {
+      "Field": "menu_id",
+      "Type": "int unsigned",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": null,
+      "Extra": ""
+    },
+    {
+      "Field": "food-item_id",
+      "Type": "int unsigned",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": null,
+      "Extra": ""
+    },
+    {
+      "Field": "serve-line_id",
+      "Type": "int unsigned",
+      "Null": "YES",
+      "Key": "MUL",
+      "Default": null,
+      "Extra": ""
+    },
+    {
+      "Field": "servings",
+      "Type": "int",
+      "Null": "YES",
+      "Key": "",
+      "Default": null,
+      "Extra": ""
+    }
+  ],
+  "fkInfo": [
+    { "COLUMN_NAME": "food-item_id", "REFERENCED_TABLE_NAME": "food-items" },
+    { "COLUMN_NAME": "serve-line_id", "REFERENCED_TABLE_NAME": "serve-line" },
+    { "COLUMN_NAME": "menu_id", "REFERENCED_TABLE_NAME": "menus" }
+  ],
+  "fkTable": {
+    "food-item_id": {
+      "name": {
+        "Field": "name",
+        "Type": "varchar(45)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+      },
+      "id": {
+        "Field": "id",
+        "Type": "int unsigned",
+        "Null": "NO",
+        "Key": "PRI",
+        "Default": null,
+        "Extra": "auto_increment"
+      },
+      "select": []
+    },
+    "serve-line_id": {
+      "name": {
+        "Field": "name",
+        "Type": "varchar(45)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+      },
+      "id": {
+        "Field": "id",
+        "Type": "int unsigned",
+        "Null": "NO",
+        "Key": "PRI",
+        "Default": null,
+        "Extra": "auto_increment"
+      },
+      "select": [
+        { "id": 1, "name": "Hot 1" },
+        { "id": 2, "name": "Hot 2" },
+        { "id": 3, "name": "Hot 3" },
+        { "id": 4, "name": "Cold 1" },
+        { "id": 5, "name": "Cold 2" },
+        { "id": 6, "name": "Cold 3" },
+        { "id": 7, "name": "Cold 4" },
+        { "id": 8, "name": "Dry Side" },
+        { "id": 9, "name": "Beverage" },
+        { "id": 10, "name": "Gluten Free" },
+        { "id": 11, "name": "Dairy Free" },
+        { "id": 12, "name": "Other Special Diet" },
+        { "id": 13, "name": "Other" }
+      ]
+    },
+    "menu_id": {
+      "id": {
+        "Field": "id",
+        "Type": "int unsigned",
+        "Null": "NO",
+        "Key": "PRI",
+        "Default": null,
+        "Extra": "auto_increment"
+      },
+      "select": []
+    }
+  }
+}

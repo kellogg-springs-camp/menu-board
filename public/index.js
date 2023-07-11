@@ -50,7 +50,8 @@ document
     for (let i = 0; i < forminputs.length; i++) {
       validateData = validate(forminputs[i]);
       if (validateData.bool) {
-        reqObject[forminputs[i].getAttribute("name")] = validateData.data;
+        reqObject[forminputs[i].previousElementSibling.getAttribute("for")] =
+          validateData.data;
       } else {
         const errorDiv = document.createElement("div");
         errorDiv.classList.add("error", "status");
@@ -87,18 +88,144 @@ document
                 document.getElementById("menu_itemsAdditional").innerHTML =
                   html;
                 fetch("/api/json/menu_items")
-                  .then((response) => response.text())
+                  .then((response) => response.json())
                   .then((data) => {
-                    var listhtml = document.createElement("ul")
-                    for(var i = 0; i < data.tableData.length; i++) {
-                      var listItem = document.createElement("li")
-                      var linePos = document.createElement("select")
-                      linePos.setAttribute("name", data.tableData.length)
+                    var header = document.createElement("h2");
+                    header.innerText = "Current Menu";
+                    document
+                      .getElementById("food-itemsAdditional")
+                      .appendChild(header);
+
+                    var listhtml = document.createElement("ul");
+                    for (const item of data.tableData) {
+                      var listItem = document.createElement("li");
+                      var linePos = document.createElement("select");
+                      linePos.setAttribute(
+                        "name",
+                        data.fkTable["serve-line_id"].Field
+                      );
+                      linePos.classList.add(data.fkTable["serve-line_id"].Type);
+                      linePos.classList.add(data.fkTable["serve-line_id"].Null);
+                      linePos.classList.add(data.fkTable["serve-line_id"].Key);
+                      linePos.classList.add(data.atributeInfo["2"].Field);
+                      linePos.classList.add("FKinput");
+                      linePos.classList.add("datainput");
+                      linePos.disabled = true;
+                      for (const lineOpt of data.fkTable["serve-line_id"]
+                        .select) {
+                        var newOpt = document.createElement("option");
+                        newOpt.value = lineOpt.id;
+                        newOpt.textContent = lineOpt.id + " - " + lineOpt.name;
+                        if (lineOpt.id == item["serve-line_id"]) {
+                          newOpt.selected = true;
+                        }
+                        linePos.appendChild(newOpt);
+                      }
+                      listItem.appendChild(linePos);
+
+                      var foodItem = document.createElement("select");
+                      foodItem.setAttribute(
+                        "name",
+                        data.fkTable["food-item_id"].Field
+                      );
+                      foodItem.classList.add(data.fkTable["food-item_id"].Type);
+                      foodItem.classList.add(data.fkTable["food-item_id"].Null);
+                      foodItem.classList.add(data.fkTable["food-item_id"].Key);
+                      foodItem.classList.add(data.atributeInfo["2"].Field);
+                      foodItem.classList.add("FKinput");
+                      foodItem.classList.add("datainput");
+                      foodItem.disabled = true;
+                      for (const lineOpt of data.fkTable["food-item_id"]
+                        .select) {
+                        var newOpt = document.createElement("option");
+                        newOpt.value = lineOpt.id;
+                        newOpt.textContent = lineOpt.id + " - " + lineOpt.name;
+                        if (lineOpt.id == item["food-item_id"]) {
+                          newOpt.selected = true;
+                        }
+                        foodItem.appendChild(newOpt);
+                      }
+                      listItem.appendChild(foodItem);
+
+                      var editBut = document.createElement("button");
+                      editBut.innerText = "🖉";
+                      editBut.classList.add("editButton");
+                      listItem.appendChild(editBut);
+
+                      var deleteBut = document.createElement("button");
+                      deleteBut.innerHTML = "&#128465";
+                      deleteBut.classList.add("deleteButton");
+                      listItem.appendChild(deleteBut);
+
+                      listhtml.appendChild(listItem);
                     }
+                    document
+                      .getElementById("food-itemsAdditional")
+                      .appendChild(listhtml);
                   })
                   .catch((error) => console.error(error));
               })
               .catch((error) => console.error(error));
+            document
+              .getElementById("menu_itemsform")
+              .addEventListener("submit", function (event) {
+                event.preventDefault(); // Prevents the default form submission
+                const statuses = event.target.querySelectorAll(".error");
+                statuses.forEach(function (status) {
+                  status.remove();
+                });
+                const forminputs = document.getElementsByClassName("datainput");
+
+                // Retrieve form data
+                var reqObject = {};
+                for (let i = 0; i < forminputs.length; i++) {
+                  if (forminputs[i].parentElement.id == "food-itemsform") {
+                    break;
+                  }
+                  validateData = validate(forminputs[i]);
+                  if (validateData.bool) {
+                    reqObject[
+                      forminputs[i].previousElementSibling.getAttribute("for")
+                    ] = validateData.data;
+                  } else {
+                    const errorDiv = document.createElement("div");
+                    errorDiv.classList.add("error", "status");
+                    errorDiv.setAttribute("role", "alert");
+
+                    errorDiv.innerHTML =
+                      "<h3>❌ Error: " + validateData.err + "</h3>";
+                    forminputs[i].parentNode.insertBefore(
+                      errorDiv,
+                      forminputs[i].nextSibling
+                    );
+                    return;
+                  }
+                }
+                fetch("/api/createmenu_item", {
+                  method: "POST",
+                  body: JSON.stringify(reqObject),
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                })
+                  .then((response) => {
+                    if (!response.ok) {
+                      return response.text().then((error) => {
+                        throw new Error(error);
+                      });
+                    }
+                    event.target.reset();
+                  })
+                  .catch((error) => {
+                    const errorDiv = document.createElement("div");
+                    errorDiv.classList.add("error", "status");
+                    errorDiv.setAttribute("role", "alert");
+
+                    errorDiv.innerHTML =
+                      "<h3>❌ Error: " + error.message + "</h3>";
+                    event.target.appendChild(errorDiv);
+                  });
+              });
           })
           .catch((error) => console.error(error));
       })
