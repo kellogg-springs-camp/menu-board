@@ -91,29 +91,63 @@ app.get("/", (req, res) => {
   res.status(200).render("menu");
 });
 
-// app.use("/test", router);
+app.get("/test", isAuthenticated, function (req, res) {
+  var data = {
+    layout: false,
+    title: "Express",
+    session: req.session,
+  };
+  res.status(200).render("test", data);
+});
+
 app.post(
   "/login",
   express.urlencoded({ extended: false }),
   function (req, res) {
     // login logic to validate req.body.user and req.body.pass
     // would be implemented here. for this example any combo works
+    var user_email_address = request.body.user_email_address;
 
-    // regenerate the session, which is good practice to help
-    // guard against forms of session fixation
-    req.session.regenerate(function (err) {
-      if (err) next(err);
+    var user_password = request.body.user_password;
 
-      // store user information in session, typically a user id
-      req.session.user = req.body.user;
+    if (user_email_address && user_password) {
+      query = `
+        SELECT * FROM user_login 
+        WHERE user_email = "${user_email_address}"
+        `;
 
-      // save the session before redirection to ensure page
-      // load does not happen before session is saved
-      req.session.save(function (err) {
-        if (err) return next(err);
-        res.redirect("/");
+      database.query(query, function (error, data) {
+        if (data.length > 0) {
+          for (var count = 0; count < data.length; count++) {
+            if (data[count].user_password == user_password) {
+              // regenerate the session, which is good practice to help
+              // guard against forms of session fixation
+              req.session.regenerate(function (err) {
+                if (err) next(err);
+
+                // store user information in session, typically a user id
+                req.session.user = req.body.user;
+
+                // save the session before redirection to ensure page
+                // load does not happen before session is saved
+                req.session.save(function (err) {
+                  if (err) return next(err);
+                  res.redirect("/test");
+                });
+              });
+            } else {
+              response.send("Incorrect Password");
+            }
+          }
+        } else {
+          response.send("Incorrect Email Address");
+        }
+        response.end();
       });
-    });
+    } else {
+      response.send("Please Enter Email Address and Password Details");
+      response.end();
+    }
   }
 );
 
