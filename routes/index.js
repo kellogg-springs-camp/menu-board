@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 
-var database = require("../db/db-connector");
+var database = require("../private/db-connector");
 
 /* GET home page. */
 app.get("/test", function (req, res) {

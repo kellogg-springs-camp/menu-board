@@ -1,4 +1,4 @@
-var db = require("../db/db-connector");
+var db = require("../private/db-connector");
 
 async function runArrQueries(sqlArr) {
   for (var query of sqlArr) {

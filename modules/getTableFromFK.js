@@ -1,4 +1,4 @@
-var db = require("../db/db-connector");
+var db = require("../private/db-connector");
 
 async function getTableFromFK(fkInfo) {
   var retVal = {};

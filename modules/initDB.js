@@ -10,4 +10,4 @@ async function initDB() {
   runArrQueries(ddl);
 }
 
-module.exports = initBD;
+module.exports = initDB;

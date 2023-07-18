@@ -3,6 +3,7 @@
 */
 // Express
 var fs = require("fs");
+const https = require("https");
 var express = require("express"); // We are using the express library for the web server
 var exphbs = require("express-handlebars");
 var session = require("express-session");
@@ -10,7 +11,7 @@ var app = express(); // We need to instantiate an express object to interact wit
 PORT = process.env.PORT || 1989; // Set a port number at the top so it's easy to change in the future
 
 //Database
-var db = require("./db/db-connector");
+var db = require("./private/db-connector");
 var getTableFromFK = require("./modules/getTableFromFK");
 var initDB = require("./modules/initDB");
 // var router = require("./routes/index");
@@ -60,14 +61,64 @@ app.use("/public", express.static("./public/"));
 
 initDB();
 
+function isAuthenticated(req, res, next) {
+  if (req.session.user) {
+    next();
+  } else {
+    res.send(
+      '<form action="/login" method="post">' +
+        'Username: <input name="user"><br>' +
+        'Password: <input name="pass" type="password"><br>' +
+        '<input type="submit" text="Login"></form>'
+    );
+  }
+}
+
+https
+  .createServer(
+    {
+      key: fs.readFileSync("./private/key.pem"),
+      cert: fs.readFileSync("./private/cert.pem"),
+    },
+    app
+  )
+  .listen(PORT, (err) => {
+    if (err) throw err;
+    console.log("== Server is listening on port", PORT);
+  });
+
 app.get("/", (req, res) => {
   res.status(200).render("menu");
 });
 
 // app.use("/test", router);
+app.post(
+  "/login",
+  express.urlencoded({ extended: false }),
+  function (req, res) {
+    // login logic to validate req.body.user and req.body.pass
+    // would be implemented here. for this example any combo works
+
+    // regenerate the session, which is good practice to help
+    // guard against forms of session fixation
+    req.session.regenerate(function (err) {
+      if (err) next(err);
+
+      // store user information in session, typically a user id
+      req.session.user = req.body.user;
+
+      // save the session before redirection to ensure page
+      // load does not happen before session is saved
+      req.session.save(function (err) {
+        if (err) return next(err);
+        res.redirect("/");
+      });
+    });
+  }
+);
 
 app.get("/api/test", (req, res) => {
-  var query = "SELECT * FROM `menus`";
+  var query = "SHOW SESSION STATUS LIKE 'Ssl_cipher';";
   db.pool.query(query, function (error, results, fields) {
     res.status(200).json({
       rows: results,
@@ -84,7 +135,7 @@ app.post("/api/createmenu", (req, res) => {
     [req.body.date, req.body["meal-type_id"]],
     (error, existsBool, fields) => {
       if (error) {
-        res.status(500).send("Server failed to respond: " + err);
+        res.status(500).send("Server failed to respond: " + error);
       } else {
         if (existsBool[0].row_exists == 0) {
           var newMenuQ = "INSERT INTO `menus` VALUES(DEFAULT,?,?, DEFAULT);";
@@ -93,7 +144,9 @@ app.post("/api/createmenu", (req, res) => {
             [req.body.date, req.body["meal-type_id"]],
             (error, data, fields) => {
               if (error) {
-                res.status(500).send("Server failed to store new menu: " + err);
+                res
+                  .status(500)
+                  .send("Server failed to store new menu: " + error);
               } else {
                 res.status(200).send("New Menu successfully created.");
               }
@@ -122,7 +175,7 @@ app.post("/api/createmenu_item", (req, res) => {
     ],
     (error, data, fields) => {
       if (error) {
-        res.status(500).send("Server failed to store new menu: " + err);
+        res.status(500).send("Server failed to store new menu: " + error);
       } else {
         res.status(200).send("New Menu successfully created.");
       }
@@ -136,13 +189,13 @@ app.get("/api/forms/menu_items", (req, res) => {
     "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menu_items' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
   db.pool.query(columnsQ, (error, returndata, fields) => {
     if (error) {
-      console.log(err);
-      res.status(500).send("Server failed to respond: " + err);
+      console.log(error);
+      res.status(500).send("Server failed to respond: " + error);
     } else {
       db.pool.query(fkQ, (error, fks, fields) => {
         if (error) {
-          console.log(err);
-          res.status(500).send("Server failed to respond: " + err);
+          console.log(error);
+          res.status(500).send("Server failed to respond: " + error);
         } else {
           getTableFromFK(fks)
             .then((table) => {
@@ -172,13 +225,13 @@ app.get("/api/tables/menu_items", (req, res) => {
     "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menu_items' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
   db.pool.query(columnsQ, (error, returndata, fields) => {
     if (error) {
-      console.log(err);
-      res.status(500).send("Server failed to respond: " + err);
+      console.log(error);
+      res.status(500).send("Server failed to respond: " + error);
     } else {
       db.pool.query(fkQ, (error, fks, fields) => {
         if (error) {
-          console.log(err);
-          res.status(500).send("Server failed to respond: " + err);
+          console.log(error);
+          res.status(500).send("Server failed to respond: " + error);
         } else {
           getTableFromFK(fks)
             .then((table) => {
@@ -207,13 +260,13 @@ app.get("/api/forms/food-items", (req, res) => {
     "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'food-items' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
   db.pool.query(columnsQ, (error, returndata, fields) => {
     if (error) {
-      console.log(err);
-      res.status(500).send("Server failed to respond: " + err);
+      console.log(error);
+      res.status(500).send("Server failed to respond: " + error);
     } else {
       db.pool.query(fkQ, (error, fks, fields) => {
         if (error) {
-          console.log(err);
-          res.status(500).send("Server failed to respond: " + err);
+          console.log(error);
+          res.status(500).send("Server failed to respond: " + error);
         } else {
           getTableFromFK(fks)
             .then((table) => {
@@ -244,18 +297,18 @@ app.get("/api/json/menu_items", (req, res) => {
     "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menu_items' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
   db.pool.query(selectQ, (error, tabledata, fields) => {
     if (error) {
-      console.log(err);
-      res.status(500).send("Server failed to respond: " + err);
+      console.log(error);
+      res.status(500).send("Server failed to respond: " + error);
     } else {
       db.pool.query(columnsQ, (error, returndata, fields) => {
         if (error) {
-          console.log(err);
-          res.status(500).send("Server failed to respond: " + err);
+          console.log(error);
+          res.status(500).send("Server failed to respond: " + error);
         } else {
           db.pool.query(fkQ, (error, fks, fields) => {
             if (error) {
-              console.log(err);
-              res.status(500).send("Server failed to respond: " + err);
+              console.log(error);
+              res.status(500).send("Server failed to respond: " + error);
             } else {
               getTableFromFK(fks)
                 .then((table) => {
@@ -284,13 +337,13 @@ app.get("/api/json/menus", (req, res) => {
     "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menus' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
   db.pool.query(columnsQ, (error, returndata, fields) => {
     if (error) {
-      console.log(err);
-      res.status(500).send("Server failed to respond: " + err);
+      console.log(error);
+      res.status(500).send("Server failed to respond: " + error);
     } else {
       db.pool.query(fkQ, (error, fks, fields) => {
         if (error) {
-          console.log(err);
-          res.status(500).send("Server failed to respond: " + err);
+          console.log(error);
+          res.status(500).send("Server failed to respond: " + error);
         } else {
           getTableFromFK(fks)
             .then((table) => {
@@ -317,13 +370,13 @@ app.get("/new", (req, res) => {
     "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menus' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
   db.pool.query(columnsQ, (error, returndata, fields) => {
     if (error) {
-      console.log(err);
-      res.status(500).send("Server failed to respond: " + err);
+      console.log(error);
+      res.status(500).send("Server failed to respond: " + error);
     } else {
       db.pool.query(fkQ, (error, fks, fields) => {
         if (error) {
-          console.log(err);
-          res.status(500).send("Server failed to respond: " + err);
+          console.log(error);
+          res.status(500).send("Server failed to respond: " + error);
         } else {
           getTableFromFK(fks)
             .then((table) => {
@@ -356,9 +409,4 @@ app.use((err, req, res, next) => {
 
   // Send the error message to the client
   res.status(500).send("Failed to store data: " + err.message);
-});
-
-app.listen(PORT, (err) => {
-  if (err) throw err;
-  console.log("== Server is listening on port", PORT);
 });
