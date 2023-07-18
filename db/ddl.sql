@@ -441,3 +441,12 @@ VALUES (DEFAULT, "Hot 1"),
   (DEFAULT, "Other");
 INSERT INTO `food-items`
 VALUES (DEFAULT, "test", DEFAULT);
+INSERT INTO `employees`
+VALUES (
+    DEFAULT,
+    "josiah",
+    DEFAULT,
+    "Password",
+    DEFAULT,
+    DEFAULT
+  );

@@ -62,6 +62,7 @@ app.use("/public", express.static("./public/"));
 initDB();
 
 function isAuthenticated(req, res, next) {
+  console.log(req.session.user);
   if (req.session.user) {
     next();
   } else {
@@ -106,47 +107,36 @@ app.post(
   function (req, res) {
     // login logic to validate req.body.user and req.body.pass
     // would be implemented here. for this example any combo works
-    var user_email_address = request.body.user_email_address;
+    var user_email_address = req.body.user;
 
-    var user_password = request.body.user_password;
+    var user_password = req.body.pass;
 
     if (user_email_address && user_password) {
       query = `
-        SELECT * FROM user_login 
-        WHERE user_email = "${user_email_address}"
+        SELECT * FROM employees 
+        WHERE username = "${user_email_address}"
         `;
 
-      database.query(query, function (error, data) {
+      db.pool.query(query, function (error, data) {
         if (data.length > 0) {
           for (var count = 0; count < data.length; count++) {
-            if (data[count].user_password == user_password) {
+            if (data[count].password == user_password) {
               // regenerate the session, which is good practice to help
               // guard against forms of session fixation
-              req.session.regenerate(function (err) {
-                if (err) next(err);
-
-                // store user information in session, typically a user id
-                req.session.user = req.body.user;
-
-                // save the session before redirection to ensure page
-                // load does not happen before session is saved
-                req.session.save(function (err) {
-                  if (err) return next(err);
-                  res.redirect("/test");
-                });
-              });
+              req.session.user = req.body.user;
+              res.redirect("back");
             } else {
-              response.send("Incorrect Password");
+              res.send("Incorrect Password");
             }
           }
         } else {
-          response.send("Incorrect Email Address");
+          res.send("Incorrect Email Address");
         }
-        response.end();
+        res.end();
       });
     } else {
-      response.send("Please Enter Email Address and Password Details");
-      response.end();
+      res.send("Please Enter Email Address and Password Details");
+      res.end();
     }
   }
 );
