@@ -186,7 +186,7 @@ app.post("/api/createmenu", (req, res) => {
 
 app.post("/api/createmenu_item", (req, res) => {
   var newMenuQ =
-    "INSERT INTO `menu_items` VALUES((SELECT `id` FROM `menus` WHERE `date` = ? AND `meal-type_id` = ?),?,?,?);";
+    "INSERT INTO `menu_items` VALUES((SELECT `id` FROM `menus` WHERE `date` = ? AND `meal-type_id` = ?),?,?,DEFAULT);";
 
   db.pool.query(
     newMenuQ,
@@ -197,6 +197,22 @@ app.post("/api/createmenu_item", (req, res) => {
       req.body["serve-line_id"],
       req.body.servings,
     ],
+    (error, data, fields) => {
+      if (error) {
+        res.status(500).send("Server failed to store new menu: " + error);
+      } else {
+        res.status(200).send("New Menu successfully created.");
+      }
+    }
+  );
+});
+
+app.post("/api/createfood-item", (req, res) => {
+  var newMenuQ = "INSERT INTO `food-items` VALUES(DEFAULT,?,?);";
+
+  db.pool.query(
+    newMenuQ,
+    [req.body.name, req.body.description],
     (error, data, fields) => {
       if (error) {
         res.status(500).send("Server failed to store new menu: " + error);
@@ -388,7 +404,7 @@ app.get("/api/json/menus", (req, res) => {
   });
 });
 
-app.get("/new", (req, res) => {
+app.get("/new", isAuthenticated, (req, res) => {
   var columnsQ = "SHOW COLUMNS FROM `menus`;";
   var fkQ =
     "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menus' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
