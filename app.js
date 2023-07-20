@@ -42,6 +42,14 @@ const hbs = exphbs.create({
       );
       return matchingForeignKey.REFERENCED_TABLE_NAME;
     },
+    getFKNameFromId: function (idValue, jsonTable) {
+      for (const obj of jsonTable) {
+        if (obj.hasOwnProperty("id") && obj.id === idValue) {
+          return obj.name;
+        }
+      }
+      return null;
+    },
   },
 });
 
@@ -89,6 +97,14 @@ https
   });
 
 app.get("/", (req, res) => {
+  var currentDate = new Date();
+  currentDate.setTime(currentDate.getTime() + 7200000);
+  var q1 =
+    "SELECT * FROM `menu_items` WHERE (`menu_id` = (SELECT `id` FROM `menus` WHERE `date` = " +
+    currentDate.toISOString().slice(0, 10) +
+    " AND `service-time` < " +
+    currentDate.toTimeString().slice(0, 8) +
+    "));";
   res.status(200).render("menu");
 });
 
@@ -162,7 +178,7 @@ app.post("/api/createmenu", (req, res) => {
         res.status(500).send("Server failed to respond: " + error);
       } else {
         if (existsBool[0].row_exists == 0) {
-          var newMenuQ = "INSERT INTO `menus` VALUES(DEFAULT,?,?, DEFAULT);";
+          var newMenuQ = "INSERT INTO `menus` VALUES(DEFAULT,?,?,DEFAULT);";
           db.pool.query(
             newMenuQ,
             [req.body.date, req.body["meal-type_id"]],
@@ -207,7 +223,7 @@ app.post("/api/createmenu_item", (req, res) => {
   );
 });
 
-app.post("/api/createfood-item", (req, res) => {
+app.post("/api/createmenu_item", (req, res) => {
   var newMenuQ = "INSERT INTO `food-items` VALUES(DEFAULT,?,?);";
 
   db.pool.query(
@@ -223,185 +239,58 @@ app.post("/api/createfood-item", (req, res) => {
   );
 });
 
-app.get("/api/forms/menu_items", (req, res) => {
-  var columnsQ = "SHOW COLUMNS FROM `menu_items`;";
-  var fkQ =
-    "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menu_items' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
-  db.pool.query(columnsQ, (error, returndata, fields) => {
-    if (error) {
-      console.log(error);
-      res.status(500).send("Server failed to respond: " + error);
-    } else {
-      db.pool.query(fkQ, (error, fks, fields) => {
-        if (error) {
-          console.log(error);
-          res.status(500).send("Server failed to respond: " + error);
-        } else {
-          getTableFromFK(fks)
-            .then((table) => {
-              res.status(200).render("form", {
-                layout: false,
-                columnNames: columnRename,
-                atributeInfo: returndata,
-                fkInfo: fks,
-                fkTable: table,
-                formFor: "menu_items",
-                formName: "Add Existing Items",
-              });
-            })
-            .catch((err) => {
-              console.log(err);
-              res.status(500).send("Server failed to respond: " + err);
+app.post("/api/forms/menu_items", (req, res) => {
+  var serviceTimeQ =
+    "SELECT `service-time` FROM `menus` WHERE `date` = ? AND `meal-type_id` = ?;";
+  var foodItemsQ = "SELECT `id`, `name` FROM `food-items`;";
+  var servelineQ = "SELECT `id`, `name` FROM `serve-line`;";
+  var menuItemsQ =
+    "SELECT * FROM `menu_items` WHERE `menu_id` = (SELECT `id` FROM `menus` WHERE `date` = ? AND `meal-type_id` = ?);";
+  db.pool.query(
+    serviceTimeQ,
+    [req.body.date, req.body["meal-type_id"]],
+    (error, serviceTimeData, fields) => {
+      if (error) {
+        console.log(error);
+        res.status(500).send("Server failed to respond: " + error);
+      } else {
+        db.pool.query(foodItemsQ, (error, foodItemData, fields) => {
+          if (error) {
+            console.log(error);
+            res.status(500).send("Server failed to respond: " + error);
+          } else {
+            db.pool.query(servelineQ, (error, servelineData, fields) => {
+              if (error) {
+                console.log(error);
+                res.status(500).send("Server failed to respond: " + error);
+              } else {
+                db.pool.query(
+                  menuItemsQ,
+                  [req.body.date, req.body["meal-type_id"]],
+                  (error, menuItemData, fields) => {
+                    if (error) {
+                      console.log(error);
+                      res
+                        .status(500)
+                        .send("Server failed to respond: " + error);
+                    } else {
+                      res.status(200).render("menuitemsform", {
+                        layout: false,
+                        serviceTime: serviceTimeData,
+                        foodItems: foodItemData,
+                        serveLines: servelineData,
+                        menuItems: menuItemData,
+                      });
+                    }
+                  }
+                );
+              }
             });
-        }
-      });
+          }
+        });
+      }
     }
-  });
-});
-
-app.get("/api/tables/menu_items", (req, res) => {
-  var columnsQ = "SHOW COLUMNS FROM `menu_items`;";
-  var fkQ =
-    "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menu_items' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
-  db.pool.query(columnsQ, (error, returndata, fields) => {
-    if (error) {
-      console.log(error);
-      res.status(500).send("Server failed to respond: " + error);
-    } else {
-      db.pool.query(fkQ, (error, fks, fields) => {
-        if (error) {
-          console.log(error);
-          res.status(500).send("Server failed to respond: " + error);
-        } else {
-          getTableFromFK(fks)
-            .then((table) => {
-              res.status(200).render("list", {
-                columnNames: columnRename,
-                atributeInfo: returndata,
-                fkInfo: fks,
-                fkTable: table,
-                formFor: "menu_items",
-                formName: "Add Existing Items",
-              });
-            })
-            .catch((err) => {
-              console.log(err);
-              res.status(500).send("Server failed to respond: " + err);
-            });
-        }
-      });
-    }
-  });
-});
-
-app.get("/api/forms/food-items", (req, res) => {
-  var columnsQ = "SHOW COLUMNS FROM `food-items`;";
-  var fkQ =
-    "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'food-items' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
-  db.pool.query(columnsQ, (error, returndata, fields) => {
-    if (error) {
-      console.log(error);
-      res.status(500).send("Server failed to respond: " + error);
-    } else {
-      db.pool.query(fkQ, (error, fks, fields) => {
-        if (error) {
-          console.log(error);
-          res.status(500).send("Server failed to respond: " + error);
-        } else {
-          getTableFromFK(fks)
-            .then((table) => {
-              res.status(200).render("form", {
-                layout: false,
-                columnNames: columnRename,
-                atributeInfo: returndata,
-                fkInfo: fks,
-                fkTable: table,
-                formFor: "food-items",
-                formName: "Create New Item",
-              });
-            })
-            .catch((err) => {
-              console.log(err);
-              res.status(500).send("Server failed to respond: " + err);
-            });
-        }
-      });
-    }
-  });
-});
-
-app.get("/api/json/menu_items", (req, res) => {
-  var columnsQ = "SHOW COLUMNS FROM `menu_items`;";
-  var selectQ = "SELECT * FROM `menu_items`;";
-  var fkQ =
-    "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menu_items' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
-  db.pool.query(selectQ, (error, tabledata, fields) => {
-    if (error) {
-      console.log(error);
-      res.status(500).send("Server failed to respond: " + error);
-    } else {
-      db.pool.query(columnsQ, (error, returndata, fields) => {
-        if (error) {
-          console.log(error);
-          res.status(500).send("Server failed to respond: " + error);
-        } else {
-          db.pool.query(fkQ, (error, fks, fields) => {
-            if (error) {
-              console.log(error);
-              res.status(500).send("Server failed to respond: " + error);
-            } else {
-              getTableFromFK(fks)
-                .then((table) => {
-                  res.status(200).json({
-                    tableData: tabledata,
-                    atributeInfo: returndata,
-                    fkInfo: fks,
-                    fkTable: table,
-                  });
-                })
-                .catch((err) => {
-                  console.log(err);
-                  res.status(500).send("Server failed to respond: " + err);
-                });
-            }
-          });
-        }
-      });
-    }
-  });
-});
-
-app.get("/api/json/menus", (req, res) => {
-  var columnsQ = "SHOW COLUMNS FROM `menus`;";
-  var fkQ =
-    "SELECT COLUMN_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menus' AND CONSTRAINT_NAME <> 'PRIMARY' AND REFERENCED_TABLE_NAME IS NOT NULL;";
-  db.pool.query(columnsQ, (error, returndata, fields) => {
-    if (error) {
-      console.log(error);
-      res.status(500).send("Server failed to respond: " + error);
-    } else {
-      db.pool.query(fkQ, (error, fks, fields) => {
-        if (error) {
-          console.log(error);
-          res.status(500).send("Server failed to respond: " + error);
-        } else {
-          getTableFromFK(fks)
-            .then((table) => {
-              res.status(200).json({
-                columnNames: columnRename,
-                atributeInfo: returndata,
-                fkInfo: fks,
-                fkTable: table,
-              });
-            })
-            .catch((err) => {
-              console.log(err);
-              res.status(500).send("Server failed to respond: " + err);
-            });
-        }
-      });
-    }
-  });
+  );
 });
 
 app.get("/new", isAuthenticated, (req, res) => {

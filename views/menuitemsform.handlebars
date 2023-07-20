@@ -1,0 +1,50 @@
+<form class="menu_items" id="menu_itemsform">
+    <label for="service-time" class="time NO FKfalse">Service Time:</label>
+    <input type="time" name="service-time" class="time NO datainput" value="{{serviceTime}}" />
+    <h2>Add Food Items</h2>
+    <p style="color: red;">*=required</p>
+    <div>
+        <input type="radio" id="existing" name="isNewItem" checked>Add existing item <input type="radio" id="new"
+            name="isNewItem">Add new item
+    </div>
+    <span>
+        <label for="food-item_id" class="int unsigned NO PRI FKtrue">Add existing Item:</label>
+        <select name="food-item_id" class="varchar(45) NO food-item_id FKinput datainput">
+            <option value=""></option>
+            {{#each foodItems}}
+                <option value="{{id}}"> {{id}} - {{name}}</option>
+            {{/each}}
+        </select>
+    </span>
+    <span hidden> <label for="name" class="varchar(45) NO FKfalse">New Item Name:</label>
+        <input type="text" name="food-item_name" class="varchar(45) NO datainput" />
+        <label for="description" class="varchar(255) YES FKfalse">New Item Description:</label>
+        <input type="text" name="description" class="varchar(255) YES datainput" />
+    </span>
+    <label for="serve-line_id" class="int unsigned YES MUL FKtrue">Serve Line Position:</label>
+    <select name="serve-line_id" class="varchar(45) YES serve-line_id FKinput datainput">
+        <option value=""></option>
+        {{#each serveLines}}
+            <option value="{{id}}"> {{id}} - {{name}}</option>
+        {{/each}}
+    </select>
+    <label for="servings" class="int YES FKfalse">Portion Size:</label>
+    <input type="text" name="servings" class="int YES datainput" />
+    <input id="food-itemssubmit" type="submit" value="Submit" />
+</form>
+<h2>Current Menu:</h2>
+<ol>
+    {{#each menuItems}}
+        <li>
+            <select name="serveline{{food-item_id}}" disabled>
+                {{#each ../serveLines}}
+                    <option value="{{id}}" {{#if (isEquals ../serve-line_id id)}}selected{{/if}}> {{id}} - {{name}}
+                    </option>
+                {{/each}}
+            </select>
+            <span class="food-item">{{getFKNameFromId food-item_id ../foodItems}}</span>
+            <button class="editBut">🖉</button>
+            <button class="deleteBut">&#128465</button>
+        </li>
+    {{/each}}
+</ol>
