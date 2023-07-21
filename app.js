@@ -204,7 +204,7 @@ app.post("/api/createmenu_item", (req, res) => {
   var updateTimeQ =
     "UPDATE `menus` SET `service-time` = ? WHERE (`date` = ? AND `meal-type_id` = ?);";
   var newItemQ = "INSERT INTO `food-items` VALUES (DEFAULT,?,?);";
-  var getNewItemIdQ = "SELECT LAST_INSERT_ID();";
+  var getNewItemIdQ = "SELECT `id` FROM `food-items` WHERE `name` = ?;";
   var newMenuQ =
     "INSERT INTO `menu_items` VALUES((SELECT `id` FROM `menus` WHERE `date` = ? AND `meal-type_id` = ?),?,?,DEFAULT);";
   db.pool.query(
@@ -226,69 +226,68 @@ app.post("/api/createmenu_item", (req, res) => {
                   .status(500)
                   .send("Server failed to store new menu: " + error);
               } else {
-                db.pool.query(getNewItemIdQ, (error, data, fields) => {
-                  console.log(data);
-                  if (error) {
-                    console.log(error);
-                    res
-                      .status(500)
-                      .send("Server failed to store new menu: " + error);
-                  } else {
-                    db.pool.query(
-                      newMenuQ,
-                      [
-                        req.body.date,
-                        req.body["meal-type_id"],
-                        data[0]["LAST_INSERT_ID()"],
-                        req.body["serve-line_id"],
-                        req.body.servings,
-                      ],
-                      (error, data, fields) => {
-                        if (error) {
-                          console.log(error);
-                          res
-                            .status(500)
-                            .send("Server failed to store new menu: " + error);
-                        } else {
-                          res
-                            .status(200)
-                            .send("New Menu successfully created.");
+                db.pool.query(
+                  getNewItemIdQ,
+                  [req.body["food-item_name"]],
+                  (error, data, fields) => {
+                    console.log(data);
+                    if (error) {
+                      console.log(error);
+                      res
+                        .status(500)
+                        .send("Server failed to store new menu: " + error);
+                    } else {
+                      db.pool.query(
+                        newMenuQ,
+                        [
+                          req.body.date,
+                          req.body["meal-type_id"],
+                          data[0].id,
+                          req.body["serve-line_id"],
+                          req.body.servings,
+                        ],
+                        (error, data, fields) => {
+                          if (error) {
+                            console.log(error);
+                            res
+                              .status(500)
+                              .send(
+                                "Server failed to store new menu: " + error
+                              );
+                          } else {
+                            res
+                              .status(200)
+                              .send("New Menu successfully created.");
+                          }
                         }
-                      }
-                    );
+                      );
+                    }
                   }
-                });
+                );
               }
             }
           );
         } else {
-          db.pool.query(getNewItemIdQ, (error, data, fields) => {
-            if (error) {
-              console.log(error);
-              res.status(500).send("Server failed to store new menu: " + error);
-            } else {
-              db.pool.query(
-                newMenuQ,
-                [
-                  req.body.date,
-                  req.body["meal-type_id"],
-                  req.body["food-item_id"],
-                  req.body["serve-line_id"],
-                  req.body.servings,
-                ],
-                (error, data, fields) => {
-                  if (error) {
-                    console.log(error);
-                    res
-                      .status(500)
-                      .send("Server failed to store new menu: " + error);
-                  } else {
-                    res.status(200).send("New Menu successfully created.");
-                  }
-                }
-              );
+          db.pool.query(
+            newMenuQ,
+            [
+              req.body.date,
+              req.body["meal-type_id"],
+              req.body["food-item_id"],
+              req.body["serve-line_id"],
+              req.body.servings,
+            ],
+            (error, data, fields) => {
+              if (error) {
+                console.log(error);
+                res
+                  .status(500)
+                  .send("Server failed to store new menu: " + error);
+              } else {
+                res.status(200).send("New Menu successfully created.");
+              }
             }
-          });
+          );
         }
       }
     }
