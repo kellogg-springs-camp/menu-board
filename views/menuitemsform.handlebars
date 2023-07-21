@@ -36,15 +36,14 @@
 <ol>
     {{#each menuItems}}
         <li>
-            <select name="serveline{{food-item_id}}" disabled>
+            <select name="serveline{{food-item_id}}">
                 {{#each ../serveLines}}
                     <option value="{{id}}" {{#if (isEquals ../serve-line_id id)}}selected{{/if}}> {{id}} - {{name}}
                     </option>
                 {{/each}}
             </select>
             <span class="food-item">{{getFKNameFromId food-item_id ../foodItems}}</span>
-            <button class="editBut">🖉</button>
-            <button class="deleteBut">&#128465</button>
+            <button name="{{food-item_id}}" class="deleteBut">&#128465</button>
         </li>
     {{/each}}
 </ol>

@@ -348,6 +348,23 @@ app.post("/api/forms/menu_items", (req, res) => {
   );
 });
 
+app.delete("/api/deletemenu_items", (req, res) => {
+  var removeQ =
+    "DELETE FROM `menu_items` WHERE (`menu_id` = (SELECT `id` FROM `menus` WHERE `date` = ? AND `meal-type_id` = ?)) and (`food-item_id` = ?);";
+  db.pool.query(
+    removeQ,
+    [req.body.date, req.body["meal-type_id"], req.body.item],
+    (error, data, fields) => {
+      if (error) {
+        console.log(error);
+        res.status(500).send("Server failed to respond: " + error);
+      } else {
+        res.status(200).send("Menu item deleted successfully.");
+      }
+    }
+  );
+});
+
 app.get("/new", isAuthenticated, (req, res) => {
   var columnsQ = "SHOW COLUMNS FROM `menus`;";
   var fkQ =
