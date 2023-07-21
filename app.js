@@ -99,13 +99,18 @@ https
 app.get("/", (req, res) => {
   var currentDate = new Date();
   currentDate.setTime(currentDate.getTime() + 7200000);
-  var q1 =
-    "SELECT * FROM `menu_items` WHERE (`menu_id` = (SELECT `id` FROM `menus` WHERE `date` = " +
-    currentDate.toISOString().slice(0, 10) +
-    " AND `service-time` < " +
-    currentDate.toTimeString().slice(0, 8) +
-    "));";
-  res.status(200).render("menu");
+  var menuItemsQ =
+    "SELECT * FROM `menu_items` WHERE (`menu_id` = (SELECT `id` FROM `menus` WHERE `date` = CURDATE() AND `service-time` > CURTIME() + 20000 ORDER BY `service-time` ASC LIMIT 1)) ORDER BY `serve-line_id` ASC;";
+  var foodItemsQ = "SELECT `id`, `name` FROM `food-items`;";
+  db.pool.query(menuItemsQ, function (error, menuItems) {
+    db.pool.query(foodItemsQ, function (error, foodItems) {
+      console.log(menuItems);
+      res.status(200).render("menu", {
+        menuItems: menuItems,
+        foodItems: foodItems,
+      });
+    });
+  });
 });
 
 app.get("/test", isAuthenticated, function (req, res) {
