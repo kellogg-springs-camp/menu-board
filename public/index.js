@@ -6,7 +6,7 @@ function validate(element) {
     (element.classList.contains("YES") &&
       (element.value == "" || element.value == "NULL"))
   ) {
-    return { bool: true, data: DEFAULT };
+    return { bool: true, data: false };
   }
   if (element.classList.contains("date")) {
     var newDate =
@@ -35,99 +35,139 @@ function validate(element) {
   };
 }
 
+// Add event listener to the parent div
+const radioContainer = document.querySelector("div");
+radioContainer.addEventListener("change", handleRadioChange);
+
+// Event handler function for when the radio buttons are toggled
+function handleRadioChange(event) {
+  if (event.target.type === "radio" && event.target.name === "isNewItem") {
+    if (event.target.id === "existing") {
+      document.getElementById("existingSpan").style.display = "inline";
+      document.getElementById("newSpan").style.display = "none";
+    } else if (event.target.id === "new") {
+      document.getElementById("existingSpan").style.display = "none";
+      document.getElementById("newSpan").style.display = "inline";
+    }
+  }
+}
+
 document
   .getElementById("menusform")
-  .addEventListener("submit", function (event) {
-    event.preventDefault(); // Prevents the default form submission
-    const statuses = event.target.querySelectorAll(".error");
-    statuses.forEach(function (status) {
-      status.remove();
-    });
-    const forminputs = document
-      .getElementById("menusform")
-      .getElementsByClassName("datainput");
+  .addEventListener("submit", handleMenusSubmit);
 
-    // Retrieve form data
-    var reqObject = {};
-    for (let i = 0; i < forminputs.length; i++) {
-      validateData = validate(forminputs[i]);
-      if (validateData.bool) {
-        reqObject[forminputs[i].previousElementSibling.getAttribute("for")] =
-          validateData.data;
-      } else {
-        const errorDiv = document.createElement("div");
-        errorDiv.classList.add("error", "status");
-        errorDiv.setAttribute("role", "alert");
+function handleMenusSubmit(event) {
+  event.preventDefault(); // Prevents the default form submission
+  const statuses = event.target.querySelectorAll(".error");
+  statuses.forEach(function (status) {
+    status.remove();
+  });
+  const forminputs = document
+    .getElementById("menusform")
+    .getElementsByClassName("datainput");
 
-        errorDiv.innerHTML = "<h3>❌ Error: " + validateData.err + "</h3>";
-        forminputs[i].parentNode.insertBefore(
-          errorDiv,
-          forminputs[i].nextSibling
-        );
-        return;
-      }
+  // Retrieve form data
+  var reqObject = {};
+  for (let i = 0; i < forminputs.length; i++) {
+    validateData = validate(forminputs[i]);
+    if (validateData.bool) {
+      reqObject[forminputs[i].previousElementSibling.getAttribute("for")] =
+        validateData.data;
+    } else {
+      const errorDiv = document.createElement("div");
+      errorDiv.classList.add("error", "status");
+      errorDiv.setAttribute("role", "alert");
+
+      errorDiv.innerHTML = "<h3>❌ Error: " + validateData.err + "</h3>";
+      forminputs[i].parentNode.insertBefore(
+        errorDiv,
+        forminputs[i].nextSibling
+      );
+      return;
     }
-    fetch("/api/createmenu", {
+  }
+  fetch("/api/createmenu", {
+    method: "POST",
+    body: JSON.stringify(reqObject),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((response) => {
+    if (!response.ok) {
+      return response.text().then((error) => {
+        throw new Error(error);
+      });
+    }
+    fetch("/api/forms/menu_items", {
       method: "POST",
       body: JSON.stringify(reqObject),
       headers: {
         "Content-Type": "application/json",
       },
-    }).then((response) => {
-      if (!response.ok) {
-        return response.text().then((error) => {
-          throw new Error(error);
-        });
-      }
-      fetch("/api/forms/menu_items", {
-        method: "POST",
-        body: JSON.stringify(reqObject),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((response) => response.text())
-        .then((html) => {
-          document.getElementById("menusAdditional").innerHTML = html;
-          document
-            .getElementById("menu_itemsform")
-            .addEventListener("submit", function (event) {
-              event.preventDefault(); // Prevents the default form submission
-              const statuses = event.target.querySelectorAll(".error");
-              statuses.forEach(function (status) {
-                status.remove();
-              });
-              const forminputs = document
-                .getElementById("menu_itemsform")
-                .getElementsByClassName("datainput");
-
-              // Retrieve form data
-              var reqObject = {};
-              for (let i = 0; i < forminputs.length; i++) {
-                validateData = validate(forminputs[i]);
-                if (validateData.bool) {
-                  reqObject[
-                    forminputs[i].previousElementSibling.getAttribute("for")
-                  ] = validateData.data;
-                } else {
-                  const errorDiv = document.createElement("div");
-                  errorDiv.classList.add("error", "status");
-                  errorDiv.setAttribute("role", "alert");
-
-                  errorDiv.innerHTML =
-                    "<h3>❌ Error: " + validateData.err + "</h3>";
-                  forminputs[i].parentNode.insertBefore(
-                    errorDiv,
-                    forminputs[i].nextSibling
-                  );
-                  return;
-                }
-              }
-            });
-        });
-    });
+    })
+      .then((response) => response.text())
+      .then((html) => {
+        document.getElementById("menusAdditional").innerHTML = html;
+        document
+          .getElementById("menu_itemsform")
+          .addEventListener("submit", handleMenuItemsSubmit);
+      });
   });
+}
 
+function handleMenuItemsSubmit(event) {
+  event.preventDefault(); // Prevents the default form submission
+  const statuses = event.target.querySelectorAll(".error");
+  statuses.forEach(function (status) {
+    status.remove();
+  });
+  const forminputs = document.getElementsByClassName("datainput");
+
+  // Retrieve form data
+  var reqObject = {};
+  for (let i = 0; i < forminputs.length; i++) {
+    validateData = validate(forminputs[i]);
+    if (validateData.bool) {
+      if (validateData.data) {
+        reqObject[forminputs[i].previousElementSibling.getAttribute("for")] =
+          validateData.data;
+      }
+    } else {
+      const errorDiv = document.createElement("div");
+      errorDiv.classList.add("error", "status");
+      errorDiv.setAttribute("role", "alert");
+
+      errorDiv.innerHTML = "<h3>❌ Error: " + validateData.err + "</h3>";
+      forminputs[i].parentNode.insertBefore(
+        errorDiv,
+        forminputs[i].nextSibling
+      );
+      return;
+    }
+  }
+  fetch("/api/createmenu_item", {
+    method: "POST",
+    body: JSON.stringify(reqObject),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((response) => {
+    fetch("/api/forms/menu_items", {
+      method: "POST",
+      body: JSON.stringify(reqObject),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.text())
+      .then((html) => {
+        document.getElementById("menusAdditional").innerHTML = html;
+        document
+          .getElementById("menu_itemsform")
+          .addEventListener("submit", handleMenuItemsSubmit);
+      });
+  });
+}
 // document
 //   .getElementById("menusform")
 //   .addEventListener("submit", function (event) {

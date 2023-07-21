@@ -7,17 +7,17 @@
         <input type="radio" id="existing" name="isNewItem" checked>Add existing item <input type="radio" id="new"
             name="isNewItem">Add new item
     </div>
-    <span>
+    <span id="existingSpan">
         <label for="food-item_id" class="int unsigned NO PRI FKtrue">Add existing Item:</label>
-        <select name="food-item_id" class="varchar(45) NO food-item_id FKinput datainput">
+        <select name="food-item_id" class="varchar(45) YES food-item_id FKinput datainput">
             <option value=""></option>
             {{#each foodItems}}
                 <option value="{{id}}"> {{id}} - {{name}}</option>
             {{/each}}
         </select>
     </span>
-    <span hidden> <label for="name" class="varchar(45) NO FKfalse">New Item Name:</label>
-        <input type="text" name="food-item_name" class="varchar(45) NO datainput" />
+    <span id="newSpan" style="display: none;"> <label for="food-item_name" class="varchar(45) NO FKfalse">New Item Name:</label>
+        <input type="text" name="food-item_name" class="varchar(45) YES datainput" />
         <label for="description" class="varchar(255) YES FKfalse">New Item Description:</label>
         <input type="text" name="description" class="varchar(255) YES datainput" />
     </span>

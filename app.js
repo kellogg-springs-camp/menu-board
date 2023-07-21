@@ -201,39 +201,95 @@ app.post("/api/createmenu", (req, res) => {
 });
 
 app.post("/api/createmenu_item", (req, res) => {
+  var updateTimeQ =
+    "UPDATE `menus` SET `service-time` = ? WHERE (`date` = ? AND `meal-type_id` = ?);";
+  var newItemQ = "INSERT INTO `food-items` VALUES (DEFAULT,?,?);";
+  var getNewItemIdQ = "SELECT LAST_INSERT_ID();";
   var newMenuQ =
     "INSERT INTO `menu_items` VALUES((SELECT `id` FROM `menus` WHERE `date` = ? AND `meal-type_id` = ?),?,?,DEFAULT);";
-
   db.pool.query(
-    newMenuQ,
-    [
-      req.body.date,
-      req.body["meal-type_id"],
-      req.body["food-item_id"],
-      req.body["serve-line_id"],
-      req.body.servings,
-    ],
+    updateTimeQ,
+    [req.body["service-time"], req.body.date, req.body["meal-type_id"]],
     (error, data, fields) => {
       if (error) {
+        console.log(error);
         res.status(500).send("Server failed to store new menu: " + error);
       } else {
-        res.status(200).send("New Menu successfully created.");
-      }
-    }
-  );
-});
-
-app.post("/api/createmenu_item", (req, res) => {
-  var newMenuQ = "INSERT INTO `food-items` VALUES(DEFAULT,?,?);";
-
-  db.pool.query(
-    newMenuQ,
-    [req.body.name, req.body.description],
-    (error, data, fields) => {
-      if (error) {
-        res.status(500).send("Server failed to store new menu: " + error);
-      } else {
-        res.status(200).send("New Menu successfully created.");
+        if (!req.body["food-item_id"]) {
+          db.pool.query(
+            newItemQ,
+            [req.body["food-item_name"], req.body.description],
+            (error, data, fields) => {
+              if (error) {
+                console.log(error);
+                res
+                  .status(500)
+                  .send("Server failed to store new menu: " + error);
+              } else {
+                db.pool.query(getNewItemIdQ, (error, data, fields) => {
+                  console.log(data);
+                  if (error) {
+                    console.log(error);
+                    res
+                      .status(500)
+                      .send("Server failed to store new menu: " + error);
+                  } else {
+                    db.pool.query(
+                      newMenuQ,
+                      [
+                        req.body.date,
+                        req.body["meal-type_id"],
+                        data[0]["LAST_INSERT_ID()"],
+                        req.body["serve-line_id"],
+                        req.body.servings,
+                      ],
+                      (error, data, fields) => {
+                        if (error) {
+                          console.log(error);
+                          res
+                            .status(500)
+                            .send("Server failed to store new menu: " + error);
+                        } else {
+                          res
+                            .status(200)
+                            .send("New Menu successfully created.");
+                        }
+                      }
+                    );
+                  }
+                });
+              }
+            }
+          );
+        } else {
+          db.pool.query(getNewItemIdQ, (error, data, fields) => {
+            if (error) {
+              console.log(error);
+              res.status(500).send("Server failed to store new menu: " + error);
+            } else {
+              db.pool.query(
+                newMenuQ,
+                [
+                  req.body.date,
+                  req.body["meal-type_id"],
+                  req.body["food-item_id"],
+                  req.body["serve-line_id"],
+                  req.body.servings,
+                ],
+                (error, data, fields) => {
+                  if (error) {
+                    console.log(error);
+                    res
+                      .status(500)
+                      .send("Server failed to store new menu: " + error);
+                  } else {
+                    res.status(200).send("New Menu successfully created.");
+                  }
+                }
+              );
+            }
+          });
+        }
       }
     }
   );
@@ -276,7 +332,7 @@ app.post("/api/forms/menu_items", (req, res) => {
                     } else {
                       res.status(200).render("menuitemsform", {
                         layout: false,
-                        serviceTime: serviceTimeData,
+                        serviceTime: serviceTimeData[0]["service-time"],
                         foodItems: foodItemData,
                         serveLines: servelineData,
                         menuItems: menuItemData,
