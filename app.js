@@ -230,7 +230,6 @@ app.post("/api/createmenu_item", (req, res) => {
                   getNewItemIdQ,
                   [req.body["food-item_name"]],
                   (error, data, fields) => {
-                    console.log(data);
                     if (error) {
                       console.log(error);
                       res
@@ -300,7 +299,7 @@ app.post("/api/forms/menu_items", (req, res) => {
   var foodItemsQ = "SELECT `id`, `name` FROM `food-items`;";
   var servelineQ = "SELECT `id`, `name` FROM `serve-line`;";
   var menuItemsQ =
-    "SELECT * FROM `menu_items` WHERE `menu_id` = (SELECT `id` FROM `menus` WHERE `date` = ? AND `meal-type_id` = ?);";
+    "SELECT * FROM `menu_items` WHERE `menu_id` = (SELECT `id` FROM `menus` WHERE `date` = ? AND `meal-type_id` = ?) ORDER BY `serve-line_id` ASC;";
   db.pool.query(
     serviceTimeQ,
     [req.body.date, req.body["meal-type_id"]],
@@ -360,6 +359,23 @@ app.delete("/api/deletemenu_items", (req, res) => {
         res.status(500).send("Server failed to respond: " + error);
       } else {
         res.status(200).send("Menu item deleted successfully.");
+      }
+    }
+  );
+});
+
+app.patch("/api/updatemenu_items", (req, res) => {
+  var updateQ =
+    "UPDATE `menu_items` SET `serve-line_id` = ? WHERE (`menu_id` = (SELECT `id` FROM `menus` WHERE `date` = ? AND `meal-type_id` = ?)) and (`food-item_id` = ?);";
+  db.pool.query(
+    updateQ,
+    [req.body.line, req.body.date, req.body["meal-type_id"], req.body.item],
+    (error, data, fields) => {
+      if (error) {
+        console.log(error);
+        res.status(500).send("Server failed to respond: " + error);
+      } else {
+        res.status(200).send("Menu item updated successfully.");
       }
     }
   );

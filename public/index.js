@@ -117,9 +117,8 @@ function handleMenusSubmit(event) {
             .addEventListener("submit", handleMenuItemsSubmit);
           deleteButtons = document.querySelectorAll(".deleteBut");
           deleteButtons.forEach(deleteButton);
-          selectElements = document.querySelectorAll(
-            "select[name^='serveline']"
-          );
+          selectElements = document.querySelectorAll(".serveline");
+          selectElements.forEach(changeServeLine);
         })
         .catch((error) => {
           const errorDiv = document.createElement("div");
@@ -193,9 +192,8 @@ function handleMenuItemsSubmit(event) {
             .addEventListener("submit", handleMenuItemsSubmit);
           deleteButtons = document.querySelectorAll(".deleteBut");
           deleteButtons.forEach(deleteButton(button));
-          selectElements = document.querySelectorAll(
-            "select[name^='serveline']"
-          );
+          selectElements = document.querySelectorAll(".serveline");
+          selectElements.forEach(changeServeLine);
         })
         .catch((error) => {
           const errorDiv = document.createElement("div");
@@ -216,13 +214,43 @@ function handleMenuItemsSubmit(event) {
     });
 }
 
-selectElements.forEach((select) => {
+function changeServeLine(select) {
   select.addEventListener("change", (event) => {
+    const dateInput = document.querySelector("input.date");
+    const mealTypeInput = document.querySelector("select.meal-type_id");
     const changedValue = event.target.value;
     const selectName = event.target.getAttribute("name");
     console.log("Dropdown with name:", selectName, "changed to:", changedValue);
+    fetch("/api/updatemenu_items", {
+      method: "PATCH",
+      body: JSON.stringify({
+        line: changedValue,
+        date: dateInput.value,
+        "meal-type_id": mealTypeInput.value,
+        item: selectName,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.text().then((error) => {
+            throw new Error(error);
+          });
+        }
+        handleMenusSubmit(event);
+      })
+      .catch((error) => {
+        const errorDiv = document.createElement("div");
+        errorDiv.classList.add("error", "status");
+        errorDiv.setAttribute("role", "alert");
+
+        errorDiv.innerHTML = "<h3>❌ Error: " + error.message + "</h3>";
+        event.target.appendChild(errorDiv);
+      });
   });
-});
+}
 
 function deleteButton(button) {
   button.addEventListener("click", (event) => {
